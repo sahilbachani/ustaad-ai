@@ -1,0 +1,24 @@
+# IDE-specific files
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# Environment/Secrets - Strictly Exclude
+.env
+.env.*
+*.env
+**/.env
+**/.env.*
+**/*.env
+
+# Git backups - Strictly Exclude
+.git_backup/
+**/.git_backup/
