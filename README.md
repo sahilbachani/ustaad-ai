@@ -1,6 +1,6 @@
-# 👷 Ustaad.ai — AI-Powered Worker Matching & Informal Economy Platform
+# 👷 Ustaad.AI — AI-Powered Worker Matching & Informal Economy Platform
 
-**Ustaad.ai** is an advanced, event-driven, AI-agentic platform built to connect customers looking for local service experts ("Ustaads") directly with handymen (plumbers, electricians, AC repair technicians) using a seamless conversational interface on **Twilio WhatsApp** and a high-performance **Flutter Mobile Application** for the service providers.
+**Ustaad.AI** is an advanced, event-driven, AI-agentic platform built to connect customers looking for local service experts ("Ustaads") directly with handymen (plumbers, electricians, AC repair technicians) using a seamless conversational interface on **Twilio WhatsApp** and a high-performance **Flutter Mobile Application** for the service providers.
 
 The entire system's logic, flows, and integrations were co-designed and engineered with **Antigravity**, utilizing **Google Gemini** to power multi-agent decision systems and **Firebase Emulators** for local local development and testing.
 
