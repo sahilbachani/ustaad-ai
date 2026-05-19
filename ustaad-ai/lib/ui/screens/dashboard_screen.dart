@@ -5,6 +5,7 @@ import 'package:ustaad_ai/core/localization/english_strings.dart';
 import 'package:ustaad_ai/core/localization/urdu_strings.dart';
 import 'package:ustaad_ai/models/provider_model.dart';
 import 'package:ustaad_ai/models/job_model.dart';
+import 'package:ustaad_ai/models/review_model.dart';
 import 'package:ustaad_ai/providers/job_state_provider.dart';
 import 'package:ustaad_ai/ui/widgets/job_card.dart';
 import 'package:ustaad_ai/ui/screens/job_detail_screen.dart';
@@ -23,6 +24,7 @@ class DashboardScreen extends ConsumerWidget {
     final isEnglish = ref.watch(localeProvider);
     final isOnline = ref.watch(connectivityProvider);
     final pendingJobs = ref.watch(pendingJobsProvider);
+    final reviewsAsync = ref.watch(reviewsProvider);
 
     // Mock provider data
     final provider = ProviderModel.mock;
@@ -36,6 +38,7 @@ class DashboardScreen extends ConsumerWidget {
         onRefresh: () async {
           // ignore: unused_result
           ref.refresh(pendingJobsProvider);
+          ref.refresh(reviewsProvider);
         },
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -53,7 +56,10 @@ class DashboardScreen extends ConsumerWidget {
               error: (err, _) => SliverToBoxAdapter(
                 child: _ErrorState(
                   isEnglish: isEnglish,
-                  onRetry: () => ref.refresh(pendingJobsProvider),
+                  onRetry: () {
+                    ref.refresh(pendingJobsProvider);
+                    ref.refresh(reviewsProvider);
+                  },
                 ),
               ),
               data: (jobs) {
@@ -151,6 +157,11 @@ class DashboardScreen extends ConsumerWidget {
                   delegate: SliverChildListDelegate(sliverChildren),
                 );
               },
+            ),
+
+            // ── Recent Customer Reviews ──
+            SliverToBoxAdapter(
+              child: _buildReviewsSection(context, ref, reviewsAsync, isEnglish),
             ),
 
             // Bottom spacing
@@ -367,6 +378,169 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildReviewsSection(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<ReviewModel>> reviewsAsync,
+    bool isEnglish,
+  ) {
+    return reviewsAsync.when(
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (reviews) {
+        if (reviews.isEmpty) return const SizedBox.shrink();
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isEnglish ? 'Recent Customer Reviews' : 'کسٹمر کی حالیہ آراء',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...reviews.map((review) {
+                final isHira = review.customerName.toLowerCase() == 'hira';
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceLight,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isHira 
+                          ? AppColors.primary.withValues(alpha: 0.8) 
+                          : AppColors.divider,
+                      width: isHira ? 2 : 1,
+                    ),
+                    boxShadow: isHira ? [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.15),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                      )
+                    ] : null,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: (isHira ? AppColors.primary : AppColors.surface)
+                                      .withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.person,
+                                  color: isHira ? AppColors.primary : AppColors.textSecondary,
+                                  size: 18,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                review.customerName,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              if (isHira) ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Text(
+                                    'NEW REVIEW',
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          Text(
+                            review.timeAgo,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Row(
+                            children: List.generate(5, (index) {
+                              return Icon(
+                                Icons.star,
+                                color: index < review.rating ? AppColors.warning : AppColors.textSecondary.withValues(alpha: 0.3),
+                                size: 16,
+                              );
+                            }),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.divider),
+                            ),
+                            child: Text(
+                              review.serviceType,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        review.comment,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
+          ),
+        );
+      },
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ustaad_ai/models/job_model.dart';
+import 'package:ustaad_ai/models/review_model.dart';
 import 'package:ustaad_ai/services/api_service.dart';
 import 'package:ustaad_ai/services/location_service.dart';
 
@@ -37,6 +38,12 @@ final pendingJobsProvider = FutureProvider.autoDispose<List<JobModel>>((ref) asy
   return apiService.fetchPendingJobs();
 });
 
+/// Fetches customer reviews.
+final reviewsProvider = FutureProvider.autoDispose<List<ReviewModel>>((ref) async {
+  final apiService = ref.read(apiServiceProvider);
+  return apiService.fetchReviews();
+});
+
 // ─────────────────────────────────────────────
 // Active Job State Machine
 // ─────────────────────────────────────────────
@@ -70,6 +77,7 @@ class ActiveJobNotifier extends StateNotifier<ActiveJobState> {
         isLoading: false,
       );
       _ref.invalidate(pendingJobsProvider);
+      _ref.invalidate(reviewsProvider);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
@@ -90,6 +98,7 @@ class ActiveJobNotifier extends StateNotifier<ActiveJobState> {
         isLoading: false,
       );
       _ref.invalidate(pendingJobsProvider);
+      _ref.invalidate(reviewsProvider);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
@@ -107,6 +116,7 @@ class ActiveJobNotifier extends StateNotifier<ActiveJobState> {
         isLoading: false,
       );
       _ref.invalidate(pendingJobsProvider);
+      _ref.invalidate(reviewsProvider);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
@@ -116,6 +126,7 @@ class ActiveJobNotifier extends StateNotifier<ActiveJobState> {
   void clearJob() {
     state = const ActiveJobState();
     _ref.invalidate(pendingJobsProvider);
+    _ref.invalidate(reviewsProvider);
   }
 }
 

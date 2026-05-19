@@ -1,8 +1,7 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:ustaad_ai/core/constants/api_endpoints.dart';
 import 'package:ustaad_ai/models/job_model.dart';
+import 'package:ustaad_ai/models/review_model.dart';
 
 class ApiService {
   static const String baseUrl = 'https://retinal-gratified-spinning.ngrok-free.dev/ustaad-ai-ce5e2/us-central1';
@@ -35,6 +34,18 @@ class ApiService {
     ),
   ];
 
+  // In-memory mock reviews list
+  final List<ReviewModel> _mockReviews = [
+    const ReviewModel(
+      id: 'REV-001',
+      customerName: 'Ahmed',
+      serviceType: 'AC Repair',
+      rating: 5.0,
+      comment: 'Bohat zabardast service! AC bilkul naya jaisa chal raha hai.',
+      timeAgo: '1 hour ago',
+    ),
+  ];
+
   /// Updates the state of a job in the backend.
   Future<bool> updateJobState(String jobId, String state) async {
     // 1. Update in-memory state so dashboard and UI reflect updates instantly!
@@ -45,6 +56,21 @@ class ApiService {
       if (state == 'arrived') status = JobStatus.arrived;
       if (state == 'completed') status = JobStatus.completed;
       _mockJobs[index] = _mockJobs[index].copyWith(status: status);
+
+      // Dynamically add review if Hira's plumbing clifton job completes!
+      if (state == 'completed' && jobId == 'DEMO-JOB-2') {
+        final alreadyAdded = _mockReviews.any((r) => r.customerName == 'Hira');
+        if (!alreadyAdded) {
+          _mockReviews.insert(0, const ReviewModel(
+            id: 'REV-002',
+            customerName: 'Hira',
+            serviceType: 'Plumbing',
+            rating: 4.0,
+            comment: 'Pipes are fixed nicely, good job! Time par pohanch gaye thay.',
+            timeAgo: 'Just now',
+          ));
+        }
+      }
     }
 
     // Map the local state name to the backend endpoint
@@ -78,6 +104,12 @@ class ApiService {
   Future<List<JobModel>> fetchPendingJobs() async {
     await Future.delayed(const Duration(seconds: 1));
     return _mockJobs;
+  }
+
+  /// Fetches customer reviews.
+  Future<List<ReviewModel>> fetchReviews() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    return _mockReviews;
   }
 
   Future<bool> uploadCompletionProof(String jobId, dynamic image) async {

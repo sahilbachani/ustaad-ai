@@ -22,3 +22,10 @@ Thumbs.db
 # Git backups - Strictly Exclude
 .git_backup/
 **/.git_backup/
+
+# Credentials and sensitive keys - Strictly Exclude
+*serviceAccount.json
+*service-account*.json
+credentials/
+secrets/
+*.json.local
